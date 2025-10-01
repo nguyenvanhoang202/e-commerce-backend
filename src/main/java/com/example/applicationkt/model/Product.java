@@ -107,19 +107,19 @@ public class Product {
         this.stockquantity = stockquantity;
     }
 
-    public Boolean getNew() {
+    public Boolean getIsNew() {
         return isNew;
     }
 
-    public void setNew(Boolean aNew) {
+    public void setIsNew(Boolean aNew) {
         isNew = aNew;
     }
 
-    public Boolean getHot() {
+    public Boolean getIsHot() {
         return isHot;
     }
 
-    public void setHot(Boolean hot) {
+    public void setIsHot(Boolean hot) {
         isHot = hot;
     }
 

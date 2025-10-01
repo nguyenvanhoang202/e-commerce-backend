@@ -3,7 +3,7 @@ package com.example.applicationkt.model;
 public class Category {
     private Long id;
     private String name;
-    private String Slug;
+    private String slug;
     private String description;
 
     public Category() {}
@@ -11,7 +11,7 @@ public class Category {
     public Category(Long id, String name, String slug, String description) {
         this.id = id;
         this.name = name;
-        Slug = slug;
+        this.slug = slug;
         this.description = description;
     }
 
@@ -32,11 +32,11 @@ public class Category {
     }
 
     public String getSlug() {
-        return Slug;
+        return slug;
     }
 
     public void setSlug(String slug) {
-        Slug = slug;
+        this.slug = slug;
     }
 
     public String getDescription() {
