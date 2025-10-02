@@ -12,4 +12,6 @@ public interface ProductRepository {
     Product update(Product product); // Cập nhật sản phẩm
     boolean deleteById(Long id); // Xóa sản phẩm theo id
     List<Product> findByCategoryId(Long categoryId); // Lọc sản phẩm theo category
+    List<String> findAllDistinctBrands(); // lấy tất cả brands
+    List<Product> findByBrand(String brand); // lọc sản phẩm theo brand
 }

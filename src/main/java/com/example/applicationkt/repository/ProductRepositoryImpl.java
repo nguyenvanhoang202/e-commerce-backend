@@ -3,6 +3,7 @@ package com.example.applicationkt.repository;
 import com.example.applicationkt.model.Product;
 import com.example.applicationkt.model.Category;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -94,6 +95,37 @@ public class ProductRepositoryImpl implements ProductRepository {
     public List<Product> findByCategoryId(Long categoryId) {
         String sql = "SELECT * FROM \"Product\" WHERE category=?";
         return jdbcTemplate.query(sql, productRowMapper, categoryId);
+    }
+
+    @Override
+    public List<String> findAllDistinctBrands() {
+        String sql = "SELECT DISTINCT brand FROM \"Product\" WHERE brand IS NOT NULL";
+        return jdbcTemplate.queryForList(sql, String.class);
+    }
+
+    @Override
+    public List<Product> findByBrand(String brand) {
+        String sql = "SELECT * FROM \"Product\" WHERE brand = ?";
+        return jdbcTemplate.query(sql, new Object[]{brand}, (rs, rowNum) -> {
+            Product p = new Product();
+            p.setId(rs.getLong("id"));
+            p.setName(rs.getString("name"));
+            p.setSlug(rs.getString("slug"));
+            p.setPrice(rs.getDouble("price"));
+            p.setDiscountprice(rs.getDouble("discountprice"));
+            p.setBrand(rs.getString("brand"));
+            p.setImageUrl(rs.getString("imageUrl"));
+            p.setDescription(rs.getString("description"));
+            p.setStockquantity(rs.getInt("stockquantity"));
+            p.setIsNew(rs.getBoolean("isNew"));
+            p.setIsHot(rs.getBoolean("isHot"));
+
+            Category c = new Category();
+            c.setId(rs.getLong("category"));  // map id vào category object
+            p.setCategory(c);
+
+            return p;
+        });
     }
 }
 

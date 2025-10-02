@@ -2,7 +2,6 @@ package com.example.applicationkt.controller;
 
 import com.example.applicationkt.dto.ApiResponse;
 import com.example.applicationkt.dto.ProductCreateRequest;
-import com.example.applicationkt.model.Category;
 import com.example.applicationkt.model.Product;
 import com.example.applicationkt.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.util.List;
 
 @RestController
@@ -23,20 +21,21 @@ public class ProductController {
 
     // Lấy tất cả sản phẩm
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<ApiResponse> getAllProducts() {
+        List<Product> products = productService.getAllProducts();
+        return ResponseEntity.ok(new ApiResponse(true, "Lấy tất cả sản phẩm thành công", products));
     }
 
     // Lấy sản phẩm theo id
     @GetMapping("/{id}")
-    public ResponseEntity<?> getProductById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse> getProductById(@PathVariable Long id) {
         try {
             Product product = productService.getProductById(id);
-            return ResponseEntity.ok(product);
+            return ResponseEntity.ok(new ApiResponse(true, "Lấy sản phẩm thành công", product));
         } catch (RuntimeException ex) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(false, ex.getMessage()));
+                    .body(new ApiResponse(false, ex.getMessage(), null));
         }
     }
 
@@ -46,7 +45,7 @@ public class ProductController {
         Product saved = productService.createProduct(product);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new ApiResponse(true, "Thêm sản phẩm thành công, id = " + saved.getId()));
+                .body(new ApiResponse(true, "Thêm sản phẩm thành công", saved));
     }
 
     // Cập nhật sản phẩm
@@ -54,12 +53,12 @@ public class ProductController {
     public ResponseEntity<ApiResponse> updateProduct(@PathVariable Long id, @RequestBody Product product) {
         try {
             product.setId(id);
-            productService.updateProduct(product);
-            return ResponseEntity.ok(new ApiResponse(true, "Cập nhật sản phẩm thành công"));
+            Product updated = productService.updateProduct(product);
+            return ResponseEntity.ok(new ApiResponse(true, "Cập nhật sản phẩm thành công", updated));
         } catch (RuntimeException ex) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(false, ex.getMessage()));
+                    .body(new ApiResponse(false, ex.getMessage(), null));
         }
     }
 
@@ -68,107 +67,78 @@ public class ProductController {
     public ResponseEntity<ApiResponse> deleteProduct(@PathVariable Long id) {
         try {
             productService.deleteProduct(id);
-            return ResponseEntity.ok(new ApiResponse(true, "Xóa sản phẩm thành công"));
+            return ResponseEntity.ok(new ApiResponse(true, "Xóa sản phẩm thành công", null));
         } catch (RuntimeException ex) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(false, ex.getMessage()));
+                    .body(new ApiResponse(false, ex.getMessage(), null));
         }
     }
 
     // Lấy sản phẩm theo category
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<?> getProductsByCategory(@PathVariable Long categoryId) {
+    public ResponseEntity<ApiResponse> getProductsByCategory(@PathVariable Long categoryId) {
         List<Product> products = productService.getProductsByCategoryId(categoryId);
         if (products.isEmpty()) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(false, "Không có sản phẩm nào trong category id = " + categoryId));
+                    .body(new ApiResponse(false, "Không có sản phẩm nào trong category id = " + categoryId, null));
         }
-        return ResponseEntity.ok(products);
+        return ResponseEntity.ok(new ApiResponse(true, "Lấy sản phẩm theo category thành công", products));
     }
 
-    // -------------------------
     // Upload 1 ảnh cho sản phẩm
-    // -------------------------
     @PostMapping("/{id}/upload-image")
     public ResponseEntity<ApiResponse> uploadProductImage(
             @PathVariable Long id,
             @RequestParam("files") MultipartFile file) {
         try {
-            // Lấy product
-            Product product = productService.getProductById(id);
-
-            // Tạo đường dẫn lưu file
-            String uploadDir = "D:/CRUD project/uploads/images/";
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            File dest = new File(uploadDir + fileName);
-
-            // Tạo folder nếu chưa tồn tại
-            dest.getParentFile().mkdirs();
-
-            // Lưu file vào ổ đĩa
-            file.transferTo(dest);
-
-            // Cập nhật đường dẫn imageUrl trong product
-            product.setImageUrl("/uploads/images/" + fileName);
-            productService.updateProduct(product);
-
-            return ResponseEntity.ok(new ApiResponse(true, "Upload ảnh thành công"));
+            Product updated = productService.uploadProductImage(id, file);
+            return ResponseEntity.ok(new ApiResponse(true, "Upload ảnh thành công", updated));
         } catch (Exception ex) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse(false, "Upload ảnh thất bại: " + ex.getMessage()));
+                    .body(new ApiResponse(false, "Upload ảnh thất bại: " + ex.getMessage(), null));
         }
     }
+
     // Tạo product + upload ảnh
-    // -------------------------
     @PostMapping("/create-with-image")
     public ResponseEntity<ApiResponse> createProductWithImage(@ModelAttribute ProductCreateRequest request) {
         try {
-            Product product = new Product();
-            product.setName(request.getName());
-            product.setSlug(request.getSlug());
-            product.setPrice(request.getPrice());
-            product.setDiscountprice(request.getDiscountprice());
-            product.setBrand(request.getBrand());
-            product.setDescription(request.getDescription());
-            product.setStockquantity(request.getStockquantity());
-            product.setIsNew(request.getIsNew());
-            product.setIsHot(request.getIsHot());
-
-            Category category = new Category();
-            category.setId(request.getCategory());
-            product.setCategory(category);
-
-            // Upload file trước
-            MultipartFile file = request.getFiles();  // đổi từ getFile() → getFiles()
-            if (file != null && !file.isEmpty()) {
-                String uploadDir = "D:/CRUD project/uploads/images/";
-                String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-                File dest = new File(uploadDir + fileName);
-                dest.getParentFile().mkdirs();
-                file.transferTo(dest);
-
-                product.setImageUrl("/uploads/images/" + fileName);
-            }
-
-            Product saved = productService.createProduct(product);
-
+            Product saved = productService.createProductWithImage(request);
             return ResponseEntity
                     .status(HttpStatus.CREATED)
-                    .body(new ApiResponse(true, "Thêm sản phẩm + upload ảnh thành công, id = " + saved.getId()));
+                    .body(new ApiResponse(true, "Thêm sản phẩm + upload ảnh thành công", saved));
         } catch (Exception ex) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse(false, "Thêm sản phẩm thất bại: " + ex.getMessage()));
+                    .body(new ApiResponse(false, "Thêm sản phẩm thất bại: " + ex.getMessage(), null));
         }
     }
-    // Xử lý RuntimeException chung
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse> handleRuntimeException(RuntimeException ex) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(false, ex.getMessage()));
+
+    // Lấy tất cả brand
+    @GetMapping("/brand")
+    public ResponseEntity<ApiResponse> getAllBrands() {
+        List<String> brands = productService.getAllBrands();
+        if (brands.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(false, "Không có brand nào", null));
+        }
+        return ResponseEntity.ok(new ApiResponse(true, "Lấy danh sách brand thành công", brands));
     }
+
+    // Lọc sản phẩm theo brand
+    @GetMapping("/brand/{brand}")
+    public ResponseEntity<ApiResponse> getProductsByBrand(@PathVariable String brand) {
+        List<Product> products = productService.getProductsByBrand(brand);
+        if (products.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(false, "Không tìm thấy sản phẩm nào thuộc brand = " + brand, null));
+        }
+        return ResponseEntity.ok(new ApiResponse(true, "Lấy sản phẩm theo brand thành công", products));
+    }
+
 }
