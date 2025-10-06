@@ -116,6 +116,20 @@ public class ProductController {
                     .body(new ApiResponse(false, "Thêm sản phẩm thất bại: " + ex.getMessage(), null));
         }
     }
+    // Cập nhật sản phẩm + upload ảnh (nếu có)
+    @PutMapping("/{id}/update-with-image")
+    public ResponseEntity<ApiResponse> updateProductWithImage(
+            @PathVariable Long id,
+            @ModelAttribute ProductCreateRequest request) {
+        try {
+            Product updated = productService.updateProductWithImage(id, request);
+            return ResponseEntity.ok(new ApiResponse(true, "Cập nhật sản phẩm + ảnh thành công", updated));
+        } catch (Exception ex) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(false, "Cập nhật sản phẩm thất bại: " + ex.getMessage(), null));
+        }
+    }
 
     // Lấy tất cả brand
     @GetMapping("/brand")

@@ -106,4 +106,43 @@ public class ProductService {
 
         return createProduct(product);
     }
+    // Cập nhật product + upload ảnh (nếu có)
+    public Product updateProductWithImage(Long id, ProductCreateRequest request) throws Exception {
+        // 1. Lấy sản phẩm hiện tại
+        Product product = getProductById(id);
+
+        // 2. Cập nhật các trường thông tin
+        if (request.getName() != null) product.setName(request.getName());
+        if (request.getSlug() != null) product.setSlug(request.getSlug());
+        if (request.getPrice() != null) product.setPrice(request.getPrice());
+        if (request.getDiscountprice() != null) product.setDiscountprice(request.getDiscountprice());
+        if (request.getBrand() != null) product.setBrand(request.getBrand());
+        if (request.getDescription() != null) product.setDescription(request.getDescription());
+        if (request.getStockquantity() != null) product.setStockquantity(request.getStockquantity());
+        if (request.getIsNew() != null) product.setIsNew(request.getIsNew());
+        if (request.getIsHot() != null) product.setIsHot(request.getIsHot());
+
+        // Cập nhật category nếu có
+        if (request.getCategory() != null) {
+            Category category = new Category();
+            category.setId(request.getCategory());
+            product.setCategory(category);
+        }
+
+        // 3. Xử lý upload ảnh nếu có
+        MultipartFile file = request.getFiles();
+        if (file != null && !file.isEmpty()) {
+            String uploadDir = "D:/CRUD project/uploads/images/";
+            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+            File dest = new File(uploadDir + fileName);
+            dest.getParentFile().mkdirs();
+            file.transferTo(dest);
+
+            product.setImageUrl("/uploads/images/" + fileName);
+        }
+
+        // 4. Lưu lại product đã update
+        return updateProduct(product);
+    }
+
 }

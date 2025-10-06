@@ -4,7 +4,9 @@ import com.example.applicationkt.model.Usersdetail;
 import com.example.applicationkt.repository.UsersdetailRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.Optional;
 
 @Service
@@ -34,6 +36,29 @@ public class UsersdetailService {
 
     public Optional<Usersdetail> getUsersdetailByUserId(Long userId) {
         return usersdetailRepository.findByUserId(userId);
+    }
+    public Usersdetail uploadUserAvatar(Long userId, MultipartFile file) throws Exception {
+        // Lấy user detail hiện tại
+        Usersdetail detail = usersdetailRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User detail not found for userId: " + userId));
+
+        // Thư mục lưu avatar
+        String uploadDir = "D:/CRUD project/uploads/images/";
+        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        File dest = new File(uploadDir + fileName);
+
+        // Tạo folder nếu chưa có
+        dest.getParentFile().mkdirs();
+        // Lưu file
+        file.transferTo(dest);
+
+        // Cập nhật avatar url
+        detail.setAvatar("/uploads/images/" + fileName);
+
+        // Gọi update (đã có avatar trong SQL)
+        usersdetailRepository.update(detail);
+
+        return detail;
     }
 
     public void deleteUsersdetailByUserId(Long userId) {

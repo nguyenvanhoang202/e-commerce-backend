@@ -25,6 +25,7 @@ public class UsersdetailRepositoryImpl implements UsersdetailRepository {
         ud.setFullName(rs.getString("fullName"));
         ud.setPhone(rs.getString("phone"));
         ud.setAddress(rs.getString("address"));
+        ud.setAvatar(rs.getString("avatar"));
         if (rs.getDate("birthday") != null) ud.setBirthday(rs.getDate("birthday").toLocalDate());
         ud.setGender(rs.getString("gender"));
         ud.setUsers(new Users(rs.getLong("users")));
@@ -66,11 +67,12 @@ public class UsersdetailRepositoryImpl implements UsersdetailRepository {
         if (detail.getUsers() == null || detail.getUsers().getId() == null) {
             throw new RuntimeException("UserId không hợp lệ");
         }
-        String sql = "UPDATE \"Usersdetail\" SET \"fullName\" = ?, phone = ?, address = ?, birthday = ?, gender = ? WHERE users = ?";
+        String sql = "UPDATE \"Usersdetail\" SET \"fullName\" = ?, phone = ?, address = ?, avatar = ?, birthday = ?, gender = ? WHERE users = ?";
         jdbcTemplate.update(sql,
                 detail.getFullName(),
                 detail.getPhone(),
                 detail.getAddress(),
+                detail.getAvatar(),
                 detail.getBirthday() != null ? Date.valueOf(detail.getBirthday()) : null,
                 detail.getGender(),
                 detail.getUsers().getId());

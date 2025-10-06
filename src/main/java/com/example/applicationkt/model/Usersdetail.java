@@ -6,12 +6,18 @@ public class Usersdetail {
     private Long id;
     private String fullName;
     private String phone;
+    private String avatar;
     private String address;
     private LocalDate birthday;
     private String gender;          // MALE, FEMALE, OTHER
     private Users users;           // 1-1: gắn với User
 
-    public Usersdetail() {}
+    public Usersdetail() {
+    }
+
+    public Usersdetail(String avatar) {
+        this.avatar = avatar;
+    }
 
     public Usersdetail(Long id, String fullName, String phone, String address, LocalDate birthday, String gender, Users users) {
         this.id = id;
@@ -54,6 +60,10 @@ public class Usersdetail {
     public void setAddress(String address) {
         this.address = address;
     }
+
+    public String getAvatar() {return avatar;}
+
+    public void setAvatar(String avatar) {this.avatar = avatar;}
 
     public LocalDate getBirthday() {
         return birthday;

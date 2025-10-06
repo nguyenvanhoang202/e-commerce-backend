@@ -45,13 +45,23 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request,
+                                   @RequestParam String appType) {
         Optional<Users> userOpt = usersService.login(request.getUsername(), request.getPassword());
 
         if (userOpt.isPresent()) {
             Users user = userOpt.get();
 
-            // ✅ Sinh JWT thật
+            // ✅ Check role phù hợp với app
+            if (appType.equals("admin") &&
+                    !(user.getRole().equals("ADMIN") || user.getRole().equals("MANAGER"))) {
+                return ResponseEntity.status(403).body(Map.of("message", "Không có quyền truy cập admin"));
+            }
+            if (appType.equals("user") && !user.getRole().equals("USER")) {
+                return ResponseEntity.status(403).body(Map.of("message", "Không có quyền truy cập user"));
+            }
+
+            // ✅ Sinh JWT
             String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
 
             Map<String, Object> response = new HashMap<>();
@@ -61,9 +71,7 @@ public class UserController {
             return ResponseEntity.ok(response);
         }
 
-        Map<String, Object> error = new HashMap<>();
-        error.put("message", "Invalid credentials or account inactive");
-        return ResponseEntity.status(401).body(error);
+        return ResponseEntity.status(401).body(Map.of("message", "Invalid credentials or account inactive"));
     }
 
     @PutMapping("/users/{id}/active")

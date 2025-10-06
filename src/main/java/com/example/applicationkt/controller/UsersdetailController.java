@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
@@ -40,6 +41,20 @@ public class UsersdetailController {
         return usersdetailService.getUsersdetailByUserId(userId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // Upload avatar
+    @PostMapping("/usersdetail/avatar/{userId}")
+    public ResponseEntity<?> uploadAvatar(
+            @PathVariable Long userId,
+            @RequestParam("files") MultipartFile file) {
+
+        try {
+            Usersdetail updatedDetail = usersdetailService.uploadUserAvatar(userId, file);
+            return ResponseEntity.ok(updatedDetail);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/usersdetail/{userId}")
