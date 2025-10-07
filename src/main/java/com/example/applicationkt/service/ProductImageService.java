@@ -29,10 +29,12 @@ public class ProductImageService {
         for (MultipartFile file : files) {
             String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
             File dest = new File(uploadDir + fileName);
+            dest.getParentFile().mkdirs(); // tạo folder nếu chưa tồn tại
             file.transferTo(dest);
 
             ProductImage img = new ProductImage();
-            img.setImageUrl(fileName);
+            img.setImageUrl("/uploads/images/" + fileName);
+            // save và lấy id ngay
             productImageRepository.save(img, productId);
             savedImages.add(img);
         }
@@ -64,9 +66,11 @@ public class ProductImageService {
 
             String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
             File dest = new File(uploadDir + fileName);
+            dest.getParentFile().mkdirs();
             file.transferTo(dest);
 
-            productImageRepository.updateImage(id, fileName);
+            // sửa imageUrl thành đường dẫn tương đối
+            productImageRepository.updateImage(id, "/uploads/images/" + fileName);
         }
     }
 }

@@ -4,8 +4,12 @@ import com.example.applicationkt.model.ProductImage;
 import com.example.applicationkt.repository.ProductImageRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.List;
 
 @Repository
@@ -26,8 +30,8 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
 
     @Override
     public int save(ProductImage image, Long productId) {
-        String sql = "INSERT INTO \"ProductImage\"(\"imageUrl\", product) VALUES (?, ?)";
-        return jdbcTemplate.update(sql, image.getImageUrl(), productId);
+        String sql = "INSERT INTO \"ProductImage\"(\"imageUrl\", product) VALUES (?, ?) RETURNING id";
+        return jdbcTemplate.queryForObject(sql, new Object[]{image.getImageUrl(), productId}, Integer.class);
     }
 
     @Override

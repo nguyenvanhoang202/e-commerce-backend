@@ -1,5 +1,6 @@
 package com.example.applicationkt.controller;
 
+import com.example.applicationkt.dto.ApiResponse;
 import com.example.applicationkt.model.ProductImage;
 import com.example.applicationkt.service.ProductImageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,24 +38,25 @@ public class ProductImageController {
 
     // Xóa nhiều ảnh theo danh sách id
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteImages(@RequestBody List<Long> imageIds) {
+    public ResponseEntity<ApiResponse> deleteImages(@RequestBody List<Long> imageIds) {
         productImageService.deleteImages(imageIds);
-        return ResponseEntity.ok("Deleted selected images successfully");
+        return ResponseEntity.ok(new ApiResponse(true, "Deleted selected images successfully"));
     }
 
     // Xóa tất cả ảnh theo productId
     @DeleteMapping("/{productId}/delete-all")
-    public ResponseEntity<String> deleteAllByProduct(@PathVariable Long productId) {
+    public ResponseEntity<ApiResponse> deleteAllByProduct(@PathVariable Long productId) {
         productImageService.deleteAllByProduct(productId);
-        return ResponseEntity.ok("Deleted all images of product successfully");
+        return ResponseEntity.ok(new ApiResponse(true, "Deleted all images of product successfully"));
     }
 
     // Cập nhật nhiều ảnh theo danh sách id
-    @PutMapping("/update")
-    public ResponseEntity<String> updateImages(
+    @PostMapping("/update")
+    public ResponseEntity<ApiResponse> updateImages(
             @RequestParam("imageIds") List<Long> imageIds,
             @RequestParam("files") List<MultipartFile> files) throws IOException {
+
         productImageService.updateImages(imageIds, files);
-        return ResponseEntity.ok("Updated selected images successfully");
+        return ResponseEntity.ok(new ApiResponse(true, "Updated selected images successfully"));
     }
 }

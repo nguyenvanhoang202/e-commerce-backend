@@ -17,18 +17,19 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
-    // Lấy tất cả category
+    // 🔹 Lấy tất cả category
     @GetMapping
-    public ResponseEntity<List<Category>> getAllCategories() {
-        return ResponseEntity.ok(categoryService.getAllCategories());
+    public ResponseEntity<ApiResponse> getAllCategories() {
+        List<Category> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(new ApiResponse(true, "Danh sách category", categories));
     }
 
-    // Lấy category theo id
+    // 🔹 Lấy category theo id
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCategoryById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse> getCategoryById(@PathVariable Long id) {
         try {
             Category category = categoryService.getCategoryById(id);
-            return ResponseEntity.ok(category);
+            return ResponseEntity.ok(new ApiResponse(true, "Chi tiết category", category));
         } catch (RuntimeException ex) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
@@ -36,22 +37,22 @@ public class CategoryController {
         }
     }
 
-    // Tạo category mới
+    // 🔹 Tạo category mới
     @PostMapping
     public ResponseEntity<ApiResponse> createCategory(@RequestBody Category category) {
         Category saved = categoryService.createCategory(category);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new ApiResponse(true, "Thêm category thành công, id = " + saved.getId()));
+                .body(new ApiResponse(true, "Thêm category thành công", saved));
     }
 
-    // Cập nhật category
+    // 🔹 Cập nhật category
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse> updateCategory(@PathVariable Long id, @RequestBody Category category) {
         try {
             category.setId(id);
-            categoryService.updateCategory(category);
-            return ResponseEntity.ok(new ApiResponse(true, "Cập nhật category thành công"));
+            Category updated = categoryService.updateCategory(category);
+            return ResponseEntity.ok(new ApiResponse(true, "Cập nhật category thành công", updated));
         } catch (RuntimeException ex) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
@@ -59,7 +60,7 @@ public class CategoryController {
         }
     }
 
-    // Xóa category
+    // 🔹 Xóa category
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> deleteCategory(@PathVariable Long id) {
         try {
@@ -72,7 +73,7 @@ public class CategoryController {
         }
     }
 
-    // Bắt exception runtime chung
+    // 🔹 Bắt exception runtime chung
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse> handleRuntimeException(RuntimeException ex) {
         return ResponseEntity
