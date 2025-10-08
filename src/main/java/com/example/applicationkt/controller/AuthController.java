@@ -3,7 +3,7 @@ package com.example.applicationkt.controller;
 import com.example.applicationkt.dto.LoginRequest;
 import com.example.applicationkt.dto.RegisterRequest;
 import com.example.applicationkt.model.Users;
-import com.example.applicationkt.service.UsersService;
+import com.example.applicationkt.service.AuthService;
 import com.example.applicationkt.util.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +16,13 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
-public class UserController {
+public class AuthController {
 
-    private final UsersService usersService;
+    private final AuthService usersService;
     private final JwtUtil jwtUtil;
 
     @Autowired
-    public UserController(UsersService usersService, JwtUtil jwtUtil) {
+    public AuthController(AuthService usersService, JwtUtil jwtUtil) {
         this.usersService = usersService;
         this.jwtUtil = jwtUtil;
     }

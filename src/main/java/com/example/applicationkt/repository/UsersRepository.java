@@ -1,22 +1,20 @@
 package com.example.applicationkt.repository;
 
 import com.example.applicationkt.model.Users;
-import com.example.applicationkt.model.Usersdetail;
-
+import java.util.List;
 import java.util.Optional;
 
 public interface UsersRepository {
-    // Tìm người dùng theo username
-    Optional<Users> findByUsername(String username);
+    Optional<Users> findById(Long id);
+    // admin gọi, lấy tất cả user (USER + MANAGE), trừ ADMIN
+    List<Users> getAllUsersForAdmin();
 
-    // Tìm người dùng theo email
-    Optional<Users> findByEmail(String email);
+    // manage gọi, chỉ lấy user role = USER
+    List<Users> getAllUsersForManage();
 
-    // Lưu thông tin người dùng (đăng ký)
-    Users save(Users user);
+    // sửa user theo role target, tự kiểm soát quyền
+    Optional<Users> updateUser(Users user);
 
-    Usersdetail save(Usersdetail detail);
-
-    // Cập nhật trạng thái active (nếu cần khóa/mở tài khoản)
-    void updateActive(Long id, Boolean active);
+    // xóa user theo role target, tự kiểm soát quyền
+    boolean deleteUser(Long id);
 }
