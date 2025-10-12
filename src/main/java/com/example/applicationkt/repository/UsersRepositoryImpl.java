@@ -72,7 +72,17 @@ public class UsersRepositoryImpl implements UsersRepository {
             return Optional.empty();
         }
 
-        String sql = "UPDATE \"Users\" SET username = ?, password = ?, email = ?, role = ?, active = ? WHERE id = ?";
+        String sql = """
+    UPDATE "Users"
+    SET
+        username = COALESCE(?, username),
+        password = COALESCE(?, password),
+        email = COALESCE(?, email),
+        role = COALESCE(?, role),
+        active = COALESCE(?, active)
+    WHERE id = ?
+""";
+
         int updated = jdbcTemplate.update(sql,
                 user.getUsername(),
                 user.getPassword(),
@@ -80,7 +90,9 @@ public class UsersRepositoryImpl implements UsersRepository {
                 user.getRole(),
                 user.getActive(),
                 user.getId());
+
         return updated > 0 ? Optional.of(user) : Optional.empty();
+
     }
 
     @Override

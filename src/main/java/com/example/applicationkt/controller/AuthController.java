@@ -2,6 +2,7 @@ package com.example.applicationkt.controller;
 
 import com.example.applicationkt.dto.LoginRequest;
 import com.example.applicationkt.dto.RegisterRequest;
+import com.example.applicationkt.dto.UpdateActiveRequest;
 import com.example.applicationkt.model.Users;
 import com.example.applicationkt.service.AuthService;
 import com.example.applicationkt.util.JwtUtil;
@@ -75,10 +76,20 @@ public class AuthController {
     }
 
     @PutMapping("/users/{id}/active")
-    public ResponseEntity<Void> updateUserActive(
+    public ResponseEntity<?> updateUserActive(
             @PathVariable Long id,
             @RequestParam Boolean active) {
-        usersService.updateUserActive(id, active);
-        return ResponseEntity.ok().build();
+        try {
+            usersService.updateUserActive(id, active);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Cập nhật trạng thái thành công"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Lỗi khi cập nhật: " + e.getMessage()
+            ));
+        }
     }
 }

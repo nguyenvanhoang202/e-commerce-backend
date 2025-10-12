@@ -1,23 +1,31 @@
 package com.example.applicationkt.service;
 
 import com.example.applicationkt.dto.ApiResponse;
+import com.example.applicationkt.dto.UserDetailDTO;
+import com.example.applicationkt.dto.UserFullUpdateRequest;
+import com.example.applicationkt.dto.UserWithAvatarDTO;
 import com.example.applicationkt.model.Users;
+import com.example.applicationkt.model.Usersdetail;
 import com.example.applicationkt.repository.UsersRepository;
-import com.example.applicationkt.util.JwtUtil;
+import com.example.applicationkt.repository.UsersdetailRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UsersService {
 
     private final UsersRepository usersRepository;
+    private final UsersdetailRepository usersdetailRepository;
 
-    public UsersService(UsersRepository usersRepository) {
+    public UsersService(UsersRepository usersRepository, UsersdetailRepository usersdetailRepository) {
         this.usersRepository = usersRepository;
+        this.usersdetailRepository = usersdetailRepository;
     }
 
     // Lấy currentUserRole từ JWT/Spring Security
@@ -27,16 +35,34 @@ public class UsersService {
         return authentication.getAuthorities().iterator().next().getAuthority(); // "ADMIN", "MANAGE", "USER"
     }
 
-    // Admin lấy tất cả user
+    // Admin lấy tất cả user (có avatar)
     public ApiResponse getAllUsersForAdmin() {
         List<Users> users = usersRepository.getAllUsersForAdmin();
-        return new ApiResponse(true, "Lấy danh sách user thành công", users);
+
+        // Gắn avatar từ bảng Usersdetail
+        List<UserWithAvatarDTO> result = users.stream()
+                .map(user -> {
+                    Optional<Usersdetail> detail = usersdetailRepository.findByUserId(user.getId());
+                    return UserWithAvatarDTO.from(user, detail.orElse(null));
+                })
+                .collect(Collectors.toList());
+
+        return new ApiResponse(true, "Lấy danh sách user thành công", result);
     }
 
     // Manage lấy tất cả user (USER)
     public ApiResponse getAllUsersForManage() {
         List<Users> users = usersRepository.getAllUsersForManage();
-        return new ApiResponse(true, "Lấy danh sách user thành công", users);
+
+        // Gắn avatar từ bảng Usersdetail
+        List<UserWithAvatarDTO> result = users.stream()
+                .map(user -> {
+                    Optional<Usersdetail> detail = usersdetailRepository.findByUserId(user.getId());
+                    return UserWithAvatarDTO.from(user, detail.orElse(null));
+                })
+                .collect(Collectors.toList());
+
+        return new ApiResponse(true, "Lấy danh sách user thành công", result);
     }
 
     // Sửa user
@@ -137,6 +163,42 @@ public class UsersService {
             return new ApiResponse(false, "Cập nhật thất bại");
         }
     }
+
+    public ApiResponse getUserDetailById(Long id) {
+        Optional<Users> userOpt = usersRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            return new ApiResponse(false, "User không tồn tại");
+        }
+
+        Users user = userOpt.get();
+        Optional<Usersdetail> detailOpt = usersdetailRepository.findByUserId(id);
+
+        UserDetailDTO dto = UserDetailDTO.from(user, detailOpt.orElse(null));
+        return new ApiResponse(true, "Lấy thông tin chi tiết user thành công", dto);
+    }
+
+    public void updateUserFull(Long id, UserFullUpdateRequest req) {
+        // Lấy user hiện tại
+        Users user = usersRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy user id: " + id));
+
+        // Cập nhật thông tin cho bảng users
+        user.setEmail(req.getEmail());
+        user.setRole(req.getRole());
+        user.setActive(req.getActive());
+        usersRepository.updateUser(user); // đã có sẵn method này
+
+        // Lấy hoặc tạo usersdetail
+        Usersdetail detail = usersdetailRepository.findByUserId(id)
+                .orElse(new Usersdetail());
+        detail.setUsers(user); // mapping quan hệ
+        detail.setFullName(req.getFullName());
+        detail.setPhone(req.getPhone());
+        detail.setAvatar(req.getAvatar());
+        detail.setAddress(req.getAddress());
+        detail.setBirthday(req.getBirthday());
+        detail.setGender(req.getGender());
+
+        usersdetailRepository.update(detail); // dùng method có sẵn
+    }
 }
-
-

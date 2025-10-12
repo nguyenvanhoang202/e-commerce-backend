@@ -67,7 +67,19 @@ public class UsersdetailRepositoryImpl implements UsersdetailRepository {
         if (detail.getUsers() == null || detail.getUsers().getId() == null) {
             throw new RuntimeException("UserId không hợp lệ");
         }
-        String sql = "UPDATE \"Usersdetail\" SET \"fullName\" = ?, phone = ?, address = ?, avatar = ?, birthday = ?, gender = ? WHERE users = ?";
+
+        String sql = """
+        UPDATE "Usersdetail"
+        SET
+            "fullName" = COALESCE(?, "fullName"),
+            phone = COALESCE(?, phone),
+            address = COALESCE(?, address),
+            avatar = COALESCE(?, avatar),
+            birthday = COALESCE(?, birthday),
+            gender = COALESCE(?, gender)
+        WHERE users = ?
+    """;
+
         jdbcTemplate.update(sql,
                 detail.getFullName(),
                 detail.getPhone(),
@@ -77,6 +89,7 @@ public class UsersdetailRepositoryImpl implements UsersdetailRepository {
                 detail.getGender(),
                 detail.getUsers().getId());
     }
+
 
     @Override
     public void deleteByUserId(Long userId) {
